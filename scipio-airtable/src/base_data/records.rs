@@ -1,12 +1,12 @@
 use std::fmt::Display;
 
-use anyhow::Result;
+use anyhow::{Result, bail};
 use derive_builder::Builder;
 use derive_more::derive::Display;
 use scipio_macros::ToQueryString;
 use serde::{Deserialize, Serialize};
 
-use super::responses::{GetRecordResponse, ListRecordsResponse};
+use super::responses::{DeleteRecordResponse, GetRecordResponse, ListRecordsResponse, DeleteRecordsResponse};
 use crate::Airtable;
 
 /// A struct representing a sort query parameter.
@@ -133,4 +133,41 @@ impl Airtable {
     {
         Ok(())
     }
+
+    pub async fn delete_record(
+        &self,
+        base_id: &str,
+        table_id: &str,
+        record_id: &str,
+    ) -> Result<()> {
+        let url = format!(
+            "https://api.airtable.com/v0/{base_id}/{table_id}/{record_id}"
+        );
+
+        self.http.delete(&url).send().await?;
+
+        Ok(())
+    }
+
+    pub async fn delete_records(
+        &self,
+        base_id: &str,
+        table_id: &str,
+        records: Vec<String>,
+    ) -> Result<()> {
+        if records.len() > 10 {
+            bail!("Maximum limit for deleting records is 10");
+        }
+
+        let query = records.into_iter().map(|rec| format!("records[]={rec}")).collect::<Vec<_>>().join("&");
+
+        let url = format!(
+            "https://api.airtable.com/v0/{base_id}/{table_id}/?{query}",
+        );
+
+        self.http.delete(&url).send().await?;
+
+        Ok(())
+    }
+
 }

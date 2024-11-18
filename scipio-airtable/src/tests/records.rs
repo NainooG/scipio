@@ -84,3 +84,61 @@ pub async fn test_update_record(context: AsyncTestContext) -> Result<()> {
 
     Ok(())
 }
+
+#[cfg(feature = "integration")]
+#[rstest]
+#[traced_test]
+#[tokio::test]
+pub async fn delete_record(context: AsyncTestContext) -> Result<()> {
+    let mut cleanup = context.cleanup.lock().await;
+    cleanup.push(Box::new(|| {
+        Box::pin(async move {
+            tracing::info!("Cleaning up test_get_record");
+            // bail!("test_get_record failed");
+            Ok(())
+        })
+    }));
+
+    let base = env::var("TEST_AIRTABLE_API_BASE").expect("missing TEST_AIRTABLE_BASE variable");
+    let table = env::var("TEST_AIRTABLE_API_TABLE").expect("missing TEST_AIRTABLE_TABLE variable");
+    let record_id =
+        env::var("TEST_AIRTABLE_API_DELETE_RECORD_ID").expect("missing TEST_AIRTABLE_API_DELETE_RECORD_ID variable");
+
+    let query = GetRecordQueryBuilder::default().build()?;
+
+    let res =
+        context.airtable.delete_record(&base, &table, &record_id).await?;
+
+    dbg!(&res);
+
+    Ok(())
+}
+
+#[cfg(feature = "integration")]
+#[rstest]
+#[traced_test]
+#[tokio::test]
+pub async fn delete_records(context: AsyncTestContext) -> Result<()> {
+    let mut cleanup = context.cleanup.lock().await;
+    cleanup.push(Box::new(|| {
+        Box::pin(async move {
+            tracing::info!("Cleaning up test_get_record");
+            // bail!("test_get_record failed");
+            Ok(())
+        })
+    }));
+
+    let base = env::var("TEST_AIRTABLE_API_BASE").expect("missing TEST_AIRTABLE_BASE variable");
+    let table = env::var("TEST_AIRTABLE_API_TABLE").expect("missing TEST_AIRTABLE_TABLE variable");
+    let delete_records_ids =
+        env::var("TEST_AIRTABLE_API_DELETE_RECORDS_IDS").expect("missing TEST_AIRTABLE_API_DELETE_RECORDS_IDS variable").split(',').map(String::from).collect();
+
+    let query = GetRecordQueryBuilder::default().build()?;
+
+    let res =
+        context.airtable.delete_records(&base, &table, delete_records_ids).await?;
+
+    dbg!(&res);
+
+    Ok(())
+}

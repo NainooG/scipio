@@ -29,3 +29,14 @@ pub struct ListRecordsResponse<T> {
 }
 
 pub type GetRecordResponse<T> = Record<T>;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DeleteRecordResponse {
+    record_id: String,
+    deleted: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DeleteRecordsResponse {
+    records: Vec<DeleteRecordResponse>
+}
